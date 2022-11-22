@@ -27,13 +27,14 @@ dataset = fliplr(dataset);
 rng('shuffle');
 
 n=orden_predictor; % numero de entradas
-m=10; % numero de reglas
+m=5; % numero de reglas
 myfix = FIS_aleatorio(m,n) % Genera sistema difuso Takagi-sugeno de forma aleatoria
 
-nex = 50; % número de experimentos
+nex = 2; % número de experimentos
 nit = 50; % número de iteraciones
 
-dataset = dataset./max(max(dataset));
+coef_norm = max(max(dataset));
+dataset = dataset./coef_norm;
 
 %shuffled dataset
 shuffled_dataset = shuffle_dataset(dataset);
@@ -53,10 +54,10 @@ for k=1:nex
     opt.DisplayErrorValues = 0;
     opt.DisplayStepSize = 0;
     opt.DisplayFinalResults = 0;
-    opt.StepSizeIncreaseRate = 1.0000001;    % tasa de aprendizaje
-    opt.StepSizeDecreaseRate = 0.9999999;    % tasa de aprendizaje
-    opt.InitialStepSize = 0.01;
-    opt.ValidationData = [X_test_shuffled Y_test_shuffled]; % conjunto de validación 28 muestras
+    opt.StepSizeIncreaseRate = 1.0000001;    % tasa de aprendizaje - multiplicador hacia arriba
+    opt.StepSizeDecreaseRate = 0.9999999;    % tasa de aprendizaje - multiplicador hacia abajo
+    opt.InitialStepSize = 0.01; % tasa de aprendizaje inicial
+    opt.ValidationData = [X_test_shuffled Y_test_shuffled]; % conjunto de test
     [fis,trainError,stepSize,chkFIS,chkError] = anfis([X_train_shuffled Y_train_shuffled],opt); % conjunto de entrenamiento 98 muestras
     
     fis_iter(k) = fis;
@@ -93,5 +94,14 @@ xlabel("Error");
 ylabel("Repetibilidad");
 
 % Guarda el numero de experimento y la iteracion en la que se logro "optimizar"
-mint=min(min(trainError_iter));
-[N_iter,N_exp]=find(trainError_iter == mint); 
+[minimos,indiceMinimos] = min(trainError_iter);
+[masMinimo, indiceMasMinimo] = min(minimos);
+mejor_fis = chkFIS_iter(indiceMasMinimo);
+figure,
+title("Sistema difuso en test");
+grid on;
+Y_test_pred = evalfis(mejor_fis,X_test);
+hold on;
+plot(Y_test.*coef_norm);
+plot(Y_test_pred.*coef_norm);
+legend("Datos de test en el dataset","Datos de test predichos");
