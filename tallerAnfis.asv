@@ -1,0 +1,15 @@
+%% Serie de Mackey-Glass
+
+load mgdata.dat
+time = mgdata(:,1);
+x = mgdata(:, 2);
+figure(1)
+plot(time,x)
+title('Mackey-Glass Chaotic Time Series')
+xlabel('Time (sec)')
+ylabel('x(t)')
+
+% Generación del dataset
+orden_predictor = 5;
+[filas, columnas] = size(mgdata);
+dataset = zeros(filas,)
